@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS migrations (
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR(256) UNIQUE NOT NULL,
+    applied_at TIMESTAMPTZ NOT NULL
+);

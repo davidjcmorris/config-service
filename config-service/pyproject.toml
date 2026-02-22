@@ -1,0 +1,36 @@
+[project]
+name = "config-service"
+version = "0.1.0"
+description = "Config API Service — centralized application configuration management"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi==0.116.1",
+    "psycopg2-binary==2.9.10",
+    "pydantic==2.11.7",
+    "pydantic-settings>=2.0.0,<3.0.0",
+    "python-ulid>=2.0.0,<3.0.0",
+    "uvicorn>=0.39.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.1",
+    "pytest==8.4.1",
+    "pytest-asyncio>=1.2.0",
+    "ruff>=0.15.2",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["app"]
+python_files = ["*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

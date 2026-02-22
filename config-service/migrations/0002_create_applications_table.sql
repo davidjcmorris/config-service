@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS applications (
+    id VARCHAR(26) PRIMARY KEY,
+    name VARCHAR(256) UNIQUE NOT NULL,
+    comments VARCHAR(1024)
+);
