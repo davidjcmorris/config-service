@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import psycopg2
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database import get_db_cursor
 from app.models.configuration import (
@@ -16,6 +16,19 @@ from app.repositories import configuration_repository
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["configurations"])
+
+
+@router.get(
+    "/configurations",
+    response_model=list[ConfigurationResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def list_configurations(
+    application_id: Annotated[str, Query(description="Filter by application ID")],
+    cursor: Annotated[AsyncGenerator, Depends(get_db_cursor)],
+) -> list[ConfigurationResponse]:
+    """List all configurations for a given application."""
+    return configuration_repository.list_by_application(cursor, application_id)
 
 
 @router.post(
@@ -62,6 +75,23 @@ async def get_configuration(
             detail=f"Configuration '{configuration_id}' not found.",
         )
     return result
+
+
+@router.delete(
+    "/configurations/{configuration_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_configuration(
+    configuration_id: str,
+    cursor: Annotated[AsyncGenerator, Depends(get_db_cursor)],
+) -> None:
+    """Delete a configuration by ID."""
+    deleted = configuration_repository.delete(cursor, configuration_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Configuration '{configuration_id}' not found.",
+        )
 
 
 @router.put(

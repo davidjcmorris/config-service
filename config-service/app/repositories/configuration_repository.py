@@ -58,6 +58,30 @@ def get_by_id(cursor: Any, configuration_id: str) -> ConfigurationResponse | Non
     return _row_to_response(dict(row))
 
 
+def list_by_application(cursor: Any, application_id: str) -> list[ConfigurationResponse]:
+    """Fetch all configurations for a given application, ordered by name."""
+    cursor.execute(
+        """
+        SELECT id, application_id, name, comments, config
+        FROM configurations
+        WHERE application_id = %s
+        ORDER BY name
+        """,
+        (application_id,),
+    )
+    rows = cursor.fetchall()
+    return [_row_to_response(dict(row)) for row in rows]
+
+
+def delete(cursor: Any, configuration_id: str) -> bool:
+    """Delete a configuration by ID. Returns True if deleted, False if not found."""
+    cursor.execute(
+        "DELETE FROM configurations WHERE id = %s",
+        (configuration_id,),
+    )
+    return cursor.rowcount > 0
+
+
 def update(
     cursor: Any, configuration_id: str, data: ConfigurationUpdate
 ) -> ConfigurationResponse | None:

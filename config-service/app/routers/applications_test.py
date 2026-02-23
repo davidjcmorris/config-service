@@ -168,3 +168,68 @@ async def test_update_application_conflict():
             )
 
     assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_list_applications_success():
+    mock_cursor = MagicMock()
+
+    with patch(
+        "app.routers.applications.application_repository.list_all",
+        return_value=[SAMPLE_APP],
+    ):
+        app = make_app(mock_cursor)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/v1/applications")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 1
+    assert data[0]["id"] == APP_ID
+
+
+@pytest.mark.asyncio
+async def test_list_applications_empty():
+    mock_cursor = MagicMock()
+
+    with patch(
+        "app.routers.applications.application_repository.list_all",
+        return_value=[],
+    ):
+        app = make_app(mock_cursor)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.get("/api/v1/applications")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+@pytest.mark.asyncio
+async def test_delete_application_success():
+    mock_cursor = MagicMock()
+
+    with patch(
+        "app.routers.applications.application_repository.delete",
+        return_value=True,
+    ):
+        app = make_app(mock_cursor)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.delete(f"/api/v1/applications/{APP_ID}")
+
+    assert response.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_delete_application_not_found():
+    mock_cursor = MagicMock()
+
+    with patch(
+        "app.routers.applications.application_repository.delete",
+        return_value=False,
+    ):
+        app = make_app(mock_cursor)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.delete(f"/api/v1/applications/{APP_ID}")
+
+    assert response.status_code == 404

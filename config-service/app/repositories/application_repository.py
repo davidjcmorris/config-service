@@ -67,6 +67,37 @@ def get_by_id(cursor: Any, application_id: str) -> ApplicationResponse | None:
     return _row_to_response(dict(row))
 
 
+def list_all(cursor: Any) -> list[ApplicationResponse]:
+    """Fetch all applications ordered by name, including their configuration IDs."""
+    cursor.execute(
+        """
+        SELECT
+            a.id,
+            a.name,
+            a.comments,
+            COALESCE(
+                ARRAY_AGG(c.id ORDER BY c.id) FILTER (WHERE c.id IS NOT NULL),
+                ARRAY[]::VARCHAR[]
+            ) AS configuration_ids
+        FROM applications a
+        LEFT JOIN configurations c ON c.application_id = a.id
+        GROUP BY a.id, a.name, a.comments
+        ORDER BY a.name
+        """,
+    )
+    rows = cursor.fetchall()
+    return [_row_to_response(dict(row)) for row in rows]
+
+
+def delete(cursor: Any, application_id: str) -> bool:
+    """Delete an application by ID. Returns True if deleted, False if not found."""
+    cursor.execute(
+        "DELETE FROM applications WHERE id = %s",
+        (application_id,),
+    )
+    return cursor.rowcount > 0
+
+
 def update(cursor: Any, application_id: str, data: ApplicationUpdate) -> ApplicationResponse | None:
     """Update an application's fields and return the updated record."""
     # Build SET clause dynamically from non-None fields

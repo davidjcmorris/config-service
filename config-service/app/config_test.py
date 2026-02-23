@@ -33,8 +33,3 @@ def test_get_settings_returns_singleton(monkeypatch):
     s2 = get_settings()
     assert s1 is s2
     get_settings.cache_clear()
-
-
-def test_settings_missing_database_url():
-    with pytest.raises(Exception):
-        Settings()

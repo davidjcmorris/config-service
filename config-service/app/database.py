@@ -1,7 +1,6 @@
 import asyncio
 from collections.abc import AsyncGenerator
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import asynccontextmanager
 
 import psycopg2.pool
 from psycopg2.extras import RealDictCursor
@@ -31,10 +30,9 @@ def close_pool() -> None:
         _pool = None
 
 
-@asynccontextmanager
 async def get_db_cursor() -> AsyncGenerator:
     """
-    Async context manager that yields a RealDictCursor.
+    FastAPI dependency that yields a RealDictCursor.
 
     Acquires a connection from the pool via a thread executor (to avoid
     blocking the event loop), opens a RealDictCursor, commits on success,

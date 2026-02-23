@@ -18,6 +18,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["applications"])
 
 
+@router.get(
+    "/applications",
+    response_model=list[ApplicationResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def list_applications(
+    cursor: Annotated[AsyncGenerator, Depends(get_db_cursor)],
+) -> list[ApplicationResponse]:
+    """List all applications."""
+    return application_repository.list_all(cursor)
+
+
 @router.post(
     "/applications",
     response_model=ApplicationResponse,
@@ -54,6 +66,23 @@ async def get_application(
             detail=f"Application '{application_id}' not found.",
         )
     return result
+
+
+@router.delete(
+    "/applications/{application_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_application(
+    application_id: str,
+    cursor: Annotated[AsyncGenerator, Depends(get_db_cursor)],
+) -> None:
+    """Delete an application by ID."""
+    deleted = application_repository.delete(cursor, application_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Application '{application_id}' not found.",
+        )
 
 
 @router.put(

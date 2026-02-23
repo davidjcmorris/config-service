@@ -46,8 +46,14 @@ async def test_get_db_cursor_commits_on_success():
     mock_pool.getconn.return_value = mock_conn
     db_module._pool = mock_pool
 
-    async with db_module.get_db_cursor() as cursor:
-        assert cursor is mock_cursor
+    # get_db_cursor is a plain async generator (FastAPI dependency pattern)
+    gen = db_module.get_db_cursor()
+    cursor = await gen.__anext__()
+    assert cursor is mock_cursor
+    try:
+        await gen.__anext__()
+    except StopAsyncIteration:
+        pass
 
     mock_conn.commit.assert_called_once()
     mock_pool.putconn.assert_called_once_with(mock_conn)
@@ -65,9 +71,11 @@ async def test_get_db_cursor_rolls_back_on_exception():
     mock_pool.getconn.return_value = mock_conn
     db_module._pool = mock_pool
 
+    # get_db_cursor is a plain async generator (FastAPI dependency pattern)
+    gen = db_module.get_db_cursor()
+    await gen.__anext__()
     with pytest.raises(ValueError):
-        async with db_module.get_db_cursor():
-            raise ValueError("test error")
+        await gen.athrow(ValueError("test error"))
 
     mock_conn.rollback.assert_called_once()
     mock_pool.putconn.assert_called_once_with(mock_conn)
