@@ -21,3 +21,4 @@
 - Delete actions are only accessible from within the edit form, never from the list view. All deletes require confirmation.
 - When an application is expanded, an add configuration button appears at the top of its configuration list. This button only appears when the application is expanded.
 - After any successful create, update, or delete operation, re-fetch data from the API rather than updating local state directly.
+- After an unsuccessful create or update, the form field values submitted should be represented with any error message(s), rather than resetting them to the original values.

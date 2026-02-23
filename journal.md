@@ -39,3 +39,5 @@ All 42 unit tests and 11 integration tests passed on the first run, which was im
 - When toggling from Plan to Act mode, Cline didn't wait for a separate instruction — it immediately began executing the plan without being prompted
 - The entire build including backend changes, all components, unit tests, and integration tests was completed in a single Act run (I had thought to split this, but Cline suggested it was better running this in one)
 - Node.js wasn't installed and Cline identified this, installed it via Homebrew, and continued without any intervention needed beyond approving the terminal commands
+9. **Coding improvements**
+It works so much better with the form field values retained if an error occurs (also added  that to the .clinerules\coding.md file). The HTTP errors messages are feeling more friendly now. I might add the DATABASE_URL missing test back in, but as a conditional test so that it doesn't fail when the .env is set up right.
