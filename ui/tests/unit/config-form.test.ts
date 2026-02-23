@@ -112,8 +112,9 @@ describe('config-form', () => {
     });
 
     it('shows API error on create failure', async () => {
+      const { ApiError } = await import('../../src/api/client.js');
       vi.mocked(createConfiguration).mockRejectedValue(
-        new Error('Configuration with name already exists'),
+        new ApiError(409, 'Configuration with name already exists'),
       );
 
       getInput('name').value = 'duplicate';
@@ -122,7 +123,7 @@ describe('config-form', () => {
 
       await vi.waitFor(() => {
         expect(getShadow().querySelector('.api-error')?.textContent).toContain(
-          'Configuration with name already exists',
+          'This name is already in use.',
         );
       });
     });

@@ -100,16 +100,15 @@ describe('app-form', () => {
     });
 
     it('shows API error banner on create failure', async () => {
-      vi.mocked(createApplication).mockRejectedValue(
-        Object.assign(new Error('Application with name already exists.'), { status: 409 }),
-      );
+      const { ApiError } = await import('../../src/api/client.js');
+      vi.mocked(createApplication).mockRejectedValue(new ApiError(409, 'Application with name already exists.'));
 
       getInput('name').value = 'duplicate';
       submitForm();
 
       await vi.waitFor(() => {
         expect(getShadow().querySelector('.api-error')?.textContent).toContain(
-          'Application with name already exists.',
+          'This name is already in use.',
         );
       });
     });

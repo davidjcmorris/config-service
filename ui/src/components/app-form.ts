@@ -4,6 +4,7 @@ import {
   getApplication,
   updateApplication,
 } from '../api/applications.js';
+import { friendlyErrorMessage } from '../api/client.js';
 import { listConfigurations } from '../api/configurations.js';
 import type { Application, Configuration } from '../types/models.js';
 import type { ConfirmDialog } from './confirm-dialog.js';
@@ -269,6 +270,10 @@ export class AppForm extends HTMLElement {
   private saving = false;
   private loadingConfigs = false;
 
+  // Draft values preserve what the user typed across re-renders
+  private draftName: string | null = null;
+  private draftComments: string | null = null;
+
   get applicationId(): string | null {
     return this.getAttribute('application-id');
   }
@@ -283,6 +288,9 @@ export class AppForm extends HTMLElement {
 
   attributeChangedCallback(): void {
     if (this.shadowRoot) {
+      // Reset draft when navigating to a different application
+      this.draftName = null;
+      this.draftComments = null;
       this.render();
       if (this.applicationId) {
         void this.loadData();
@@ -300,7 +308,7 @@ export class AppForm extends HTMLElement {
       this.configurations = await listConfigurations(id);
       this.loadingConfigs = false;
     } catch (err) {
-      this.apiError = err instanceof Error ? err.message : 'Failed to load application';
+      this.apiError = friendlyErrorMessage(err);
       this.loadingConfigs = false;
     }
     this.render();
@@ -311,6 +319,9 @@ export class AppForm extends HTMLElement {
   }
 
   private async handleSubmit(name: string, comments: string): Promise<void> {
+    // Capture draft values so they survive re-render
+    this.draftName = name;
+    this.draftComments = comments;
     this.nameError = '';
     this.apiError = '';
 
@@ -335,9 +346,12 @@ export class AppForm extends HTMLElement {
           comments: comments.trim() || null,
         });
       }
+      // Clear drafts on success before navigating away
+      this.draftName = null;
+      this.draftComments = null;
       this.dispatch('navigate-to-list');
     } catch (err) {
-      this.apiError = err instanceof Error ? err.message : 'Save failed';
+      this.apiError = friendlyErrorMessage(err);
       this.saving = false;
       this.render();
     }
@@ -356,7 +370,7 @@ export class AppForm extends HTMLElement {
       await deleteApplication(this.applicationId!);
       this.dispatch('navigate-to-list');
     } catch (err) {
-      this.apiError = err instanceof Error ? err.message : 'Delete failed';
+      this.apiError = friendlyErrorMessage(err);
       this.render();
     }
   }
@@ -365,8 +379,9 @@ export class AppForm extends HTMLElement {
     if (!this.shadowRoot) return;
 
     const isEdit = !!this.applicationId;
-    const name = this.application?.name ?? '';
-    const comments = this.application?.comments ?? '';
+    // Use draft values if present (after a failed submit), otherwise fall back to loaded data
+    const name = this.draftName ?? this.application?.name ?? '';
+    const comments = this.draftComments ?? this.application?.comments ?? '';
 
     let configsHtml = '';
     if (isEdit) {

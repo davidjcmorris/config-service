@@ -4,6 +4,7 @@ import {
   getConfiguration,
   updateConfiguration,
 } from '../api/configurations.js';
+import { friendlyErrorMessage } from '../api/client.js';
 import type { Configuration } from '../types/models.js';
 import type { ConfirmDialog } from './confirm-dialog.js';
 
@@ -189,6 +190,11 @@ export class ConfigForm extends HTMLElement {
   private apiError = '';
   private saving = false;
 
+  // Draft values preserve what the user typed across re-renders
+  private draftName: string | null = null;
+  private draftConfig: string | null = null;
+  private draftComments: string | null = null;
+
   get configurationId(): string | null {
     return this.getAttribute('configuration-id');
   }
@@ -207,6 +213,10 @@ export class ConfigForm extends HTMLElement {
 
   attributeChangedCallback(): void {
     if (this.shadowRoot) {
+      // Reset drafts when navigating to a different configuration
+      this.draftName = null;
+      this.draftConfig = null;
+      this.draftComments = null;
       this.render();
       if (this.configurationId) {
         void this.loadData();
@@ -220,7 +230,7 @@ export class ConfigForm extends HTMLElement {
     try {
       this.configuration = await getConfiguration(id);
     } catch (err) {
-      this.apiError = err instanceof Error ? err.message : 'Failed to load configuration';
+      this.apiError = friendlyErrorMessage(err);
     }
     this.render();
   }
@@ -234,6 +244,10 @@ export class ConfigForm extends HTMLElement {
   }
 
   private async handleSubmit(name: string, configText: string, comments: string): Promise<void> {
+    // Capture draft values so they survive re-render
+    this.draftName = name;
+    this.draftConfig = configText;
+    this.draftComments = comments;
     this.nameError = '';
     this.configError = '';
     this.apiError = '';
@@ -282,9 +296,13 @@ export class ConfigForm extends HTMLElement {
           config: parsedConfig,
         });
       }
+      // Clear drafts on success before navigating away
+      this.draftName = null;
+      this.draftConfig = null;
+      this.draftComments = null;
       this.navigateBack();
     } catch (err) {
-      this.apiError = err instanceof Error ? err.message : 'Save failed';
+      this.apiError = friendlyErrorMessage(err);
       this.saving = false;
       this.render();
     }
@@ -303,7 +321,7 @@ export class ConfigForm extends HTMLElement {
       await deleteConfiguration(this.configurationId!);
       this.navigateBack();
     } catch (err) {
-      this.apiError = err instanceof Error ? err.message : 'Delete failed';
+      this.apiError = friendlyErrorMessage(err);
       this.render();
     }
   }
@@ -312,11 +330,12 @@ export class ConfigForm extends HTMLElement {
     if (!this.shadowRoot) return;
 
     const isEdit = !!this.configurationId;
-    const name = this.configuration?.name ?? '';
-    const comments = this.configuration?.comments ?? '';
-    const configText = this.configuration
-      ? JSON.stringify(this.configuration.config, null, 2)
-      : '{}';
+    // Use draft values if present (after a failed submit), otherwise fall back to loaded data
+    const name = this.draftName ?? this.configuration?.name ?? '';
+    const comments = this.draftComments ?? this.configuration?.comments ?? '';
+    const configText =
+      this.draftConfig ??
+      (this.configuration ? JSON.stringify(this.configuration.config, null, 2) : '{}');
 
     this.shadowRoot.innerHTML = `
       <style>${STYLES}</style>
