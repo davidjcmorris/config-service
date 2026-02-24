@@ -41,3 +41,20 @@ All 42 unit tests and 11 integration tests passed on the first run, which was im
 - Node.js wasn't installed and Cline identified this, installed it via Homebrew, and continued without any intervention needed beyond approving the terminal commands
 9. **Coding improvements**
 It works so much better with the form field values retained if an error occurs (also added  that to the .clinerules\coding.md file). The HTTP errors messages are feeling more friendly now. I might add the DATABASE_URL missing test back in, but as a conditional test so that it doesn't fail when the .env is set up right.
+10. **Context Framework (Exercises 1-4)**
+Created AGENTS.md at the project root and a memory/ folder with ABOUT.md, ARCHITECTURE.md, TECHNICAL.md, and TESTING.md. Cline read 22 files to generate the initial memory documents — this was the last time it needed to do that, since future sessions can use the memory files instead. 
+Key lesson: we collapsed all three initial memory files into one Cline run rather than doing them one at a time as the instructions suggested. The content was accurate so no harm done, but worth noting for future exercises.
+11. **TESTING.md improvements**
+Added two meaningful improvements beyond just documenting what exists:
+- A conditional DATABASE_URL test using pytest.mark.skipif that checks both the OS environment and .env file presence — skips gracefully locally, catches genuine misconfiguration in CI
+- A database smoke test with a yield fixture that creates a real record, asserts it was written, then cleans up — this would have caught the earlier situation where all tests passed but PostgreSQL wasn't actually being used
+- The skipif condition needed refinement from the initial plan because os.getenv("DATABASE_URL") alone doesn't account for pydantic-settings reading from .env. Final test count: 71 passed, 1 skipped.
+12. **Client Library (Exercise 5a)**
+Built a standalone TypeScript client library (client-lib/) that abstracts the config-service REST API behind a clean factory function interface. The admin UI was migrated to use it as the first consumer, replacing its api/ folder with a barrel re-export. No component files needed changing — the abstraction held cleanly. Final test count: 32 library tests + 42 UI unit tests = 74 passing.
+13. **Key analogy that helped clarify the purpose**
+Previously, I'd agreed a retaurant-based analogy where the database was a kitchen, the config-service was a waiter, and the ui was a diner. Now introducing the client library is like introducing a menu to the restaurant. Now the diner doesn't have to interogate the waiter to know everything before deciding what they want to do, instead the diner just looks at the menu and orders from the waiter. Also any new diner coming in will be able to do the same, including if takeaway; and any changes in the kitchen will automatically be updated in the menu to make it easier for everyone.
+14. **Cline observations**
+- Cline in **Act** mode jumped straight into building when toggled from **Plan** mode without waiting for a separate instruction — impressive context awareness
+- When the async cursor bug appeared (new repository functions not following the existing pattern), Cline fixed it correctly when given the error message and a hint about consistency
+- The memory files dramatically reduced the number of files Cline needed to read in later sessions
+- The pnpm-workspace.yaml hallucination from the planning phase didn't materialise in the actual implementation — Cline correctly created it only in ui/ where it belonged
