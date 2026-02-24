@@ -4,8 +4,6 @@
 
 The project has two independent test suites — one per component — with different runners, conventions, and scopes. All backend tests run without a real database (mocked). All frontend unit tests run without a real API (mocked). Integration tests require both services to be running.
 
----
-
 ## Backend (`config-service/`)
 
 ### Stack
