@@ -1,30 +1,23 @@
-import { del, get, post, put } from './client.js';
-import type { Application } from '../types/models.js';
-
-const BASE = '/api/v1/applications';
+// Re-exported from @config-service/client via the api barrel
+import { applications } from './index.js';
+import type { Application, ApplicationCreate, ApplicationUpdate } from './index.js';
 
 export function listApplications(): Promise<Application[]> {
-  return get<Application[]>(BASE);
+  return applications.list();
 }
 
 export function getApplication(id: string): Promise<Application> {
-  return get<Application>(`${BASE}/${id}`);
+  return applications.get(id);
 }
 
-export function createApplication(data: {
-  name: string;
-  comments?: string | null;
-}): Promise<Application> {
-  return post<Application>(BASE, data);
+export function createApplication(data: ApplicationCreate): Promise<Application> {
+  return applications.create(data);
 }
 
-export function updateApplication(
-  id: string,
-  data: { name?: string; comments?: string | null },
-): Promise<Application> {
-  return put<Application>(`${BASE}/${id}`, data);
+export function updateApplication(id: string, data: ApplicationUpdate): Promise<Application> {
+  return applications.update(id, data);
 }
 
 export function deleteApplication(id: string): Promise<void> {
-  return del(`${BASE}/${id}`);
+  return applications.delete(id);
 }

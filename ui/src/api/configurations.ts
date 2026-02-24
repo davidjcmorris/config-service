@@ -1,36 +1,23 @@
-import { del, get, post, put } from './client.js';
-import type { Configuration } from '../types/models.js';
-
-const BASE = '/api/v1/configurations';
+// Re-exported from @config-service/client via the api barrel
+import { configurations } from './index.js';
+import type { Configuration, ConfigurationCreate, ConfigurationUpdate } from './index.js';
 
 export function listConfigurations(applicationId: string): Promise<Configuration[]> {
-  return get<Configuration[]>(`${BASE}?application_id=${encodeURIComponent(applicationId)}`);
+  return configurations.list(applicationId);
 }
 
 export function getConfiguration(id: string): Promise<Configuration> {
-  return get<Configuration>(`${BASE}/${id}`);
+  return configurations.get(id);
 }
 
-export function createConfiguration(data: {
-  application_id: string;
-  name: string;
-  comments?: string | null;
-  config?: Record<string, unknown>;
-}): Promise<Configuration> {
-  return post<Configuration>(BASE, data);
+export function createConfiguration(data: ConfigurationCreate): Promise<Configuration> {
+  return configurations.create(data);
 }
 
-export function updateConfiguration(
-  id: string,
-  data: {
-    name?: string;
-    comments?: string | null;
-    config?: Record<string, unknown>;
-  },
-): Promise<Configuration> {
-  return put<Configuration>(`${BASE}/${id}`, data);
+export function updateConfiguration(id: string, data: ConfigurationUpdate): Promise<Configuration> {
+  return configurations.update(id, data);
 }
 
 export function deleteConfiguration(id: string): Promise<void> {
-  return del(`${BASE}/${id}`);
+  return configurations.delete(id);
 }
