@@ -21,6 +21,12 @@ See @memory/TECHNICAL.md for language versions, dependencies, and implementation
 ## Testing
 See @memory/TESTING.md for testing stack, conventions, patterns, and anti-patterns for both components.
 
+## Workflow
+See @memory/WORKFLOW-STATES.md for the collaborative workflow, story states, git protocol, and session startup protocol.
+
+## Environment & Scripts
+See @memory/ENV_SCRIPTS.md for environment variables, developer scripts, and how to run each component.
+
 ## Working in This Project
 - If you find a README in a subfolder, read it for localised context
 - After any successful mutation, re-fetch from the API rather than patching local state
